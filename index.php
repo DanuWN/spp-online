@@ -98,9 +98,8 @@
                     <?php
                     // Logika inklusi file
                     $open = isset($_GET['open']) ? $_GET['open'] : 'informasi_utama';
-                    $file = 'admin/informasi_utama.php'; // File default
+                    $file = 'admin/informasi_utama.php'; 
 
-                    // Daftar kemungkinan path untuk informasi_utama.php
                     $possible_paths = [
                         'admin/informasi_utama.php',
                         'informasi_utama.php',

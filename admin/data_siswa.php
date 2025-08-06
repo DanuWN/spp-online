@@ -16,12 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
     $no_telp = mysqli_real_escape_string($koneksi, $_POST['no_telp']);
     $id_spp = mysqli_real_escape_string($koneksi, $_POST['id_spp']);
-    
-    if (isset($_POST['nisn']) && !empty($_POST['nisn'])) {
+
+    // Cek apakah ini operasi edit atau create
+    if (isset($_POST['edit']) && !empty($_POST['edit'])) {
         // Update
         $query = "UPDATE siswa SET nis='$nis', nama='$nama', id_kelas='$id_kelas', alamat='$alamat', no_telp='$no_telp', id_spp='$id_spp' WHERE nisn='$nisn'";
     } else {
-        // Create
+        // Create: Validasi apakah nisn sudah ada
+        $check_nisn = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn='$nisn'");
+        if (mysqli_num_rows($check_nisn) > 0) {
+            echo "<script>alert('NISN sudah ada, silakan masukkan NISN lain'); window.location='?open=data_siswa';</script>";
+            exit;
+        }
+        // Insert
         $query = "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, id_spp) VALUES ('$nisn', '$nis', '$nama', '$id_kelas', '$alamat', '$no_telp', '$id_spp')";
     }
     
@@ -56,7 +63,7 @@ $spp_result = mysqli_query($koneksi, "SELECT * FROM spp");
     <div class="bg-white p-4 sm:p-6 rounded-lg shadow mb-6">
         <h3 class="text-lg font-semibold mb-4"><?php echo $edit_data ? 'Edit' : 'Tambah'; ?> Siswa</h3>
         <form action="" method="post" class="space-y-4">
-            <input type="hidden" name="nisn" value="<?php echo $edit_data ? $edit_data['nisn'] : ''; ?>">
+            <input type="hidden" name="edit" value="<?php echo $edit_data ? $edit_data['nisn'] : ''; ?>">
             <div>
                 <label class="block text-sm font-medium text-gray-700">NISN</label>
                 <input type="text" name="nisn" value="<?php echo $edit_data ? $edit_data['nisn'] : ''; ?>" required class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" <?php echo $edit_data ? 'readonly' : ''; ?>>
