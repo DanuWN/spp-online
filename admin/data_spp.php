@@ -9,16 +9,23 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['level'])) {
 
 // Create atau Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_spp = mysqli_real_escape_string($koneksi, $_POST['id_spp']);
     $tahun = mysqli_real_escape_string($koneksi, $_POST['tahun']);
     $nominal = mysqli_real_escape_string($koneksi, $_POST['nominal']);
     
-    if (isset($_POST['id_spp']) && !empty($_POST['id_spp'])) {
+    // Cek apakah ini operasi edit atau create
+    if (isset($_POST['edit']) && !empty($_POST['edit'])) {
         // Update
-        $id_spp = mysqli_real_escape_string($koneksi, $_POST['id_spp']);
         $query = "UPDATE spp SET tahun='$tahun', nominal='$nominal' WHERE id_spp='$id_spp'";
     } else {
-        // Create
-        $query = "INSERT INTO spp (tahun, nominal) VALUES ('$tahun', '$nominal')";
+        // Create: Validasi apakah id_spp sudah ada
+        $check_id_spp = mysqli_query($koneksi, "SELECT id_spp FROM spp WHERE id_spp='$id_spp'");
+        if (mysqli_num_rows($check_id_spp) > 0) {
+            echo "<script>alert('ID SPP sudah ada, silakan masukkan ID SPP lain'); window.location='?open=data_spp';</script>";
+            exit;
+        }
+        // Insert
+        $query = "INSERT INTO spp (id_spp, tahun, nominal) VALUES ('$id_spp', '$tahun', '$nominal')";
     }
     
     mysqli_query($koneksi, $query) or die(mysqli_error($koneksi));
@@ -50,7 +57,11 @@ $result = mysqli_query($koneksi, "SELECT * FROM spp") or die(mysqli_error($konek
     <div class="bg-white p-4 sm:p-6 rounded-lg shadow mb-6">
         <h3 class="text-lg font-semibold mb-4"><?php echo $edit_data ? 'Edit' : 'Tambah'; ?> SPP</h3>
         <form action="" method="post" class="space-y-4">
-            <input type="hidden" name="id_spp" value="<?php echo $edit_data ? $edit_data['id_spp'] : ''; ?>">
+            <input type="hidden" name="edit" value="<?php echo $edit_data ? $edit_data['id_spp'] : ''; ?>">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">ID SPP</label>
+                <input type="text" name="id_spp" value="<?php echo $edit_data ? $edit_data['id_spp'] : ''; ?>" required class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" <?php echo $edit_data ? 'readonly' : ''; ?>>
+            </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Tahun</label>
                 <input type="number" name="tahun" value="<?php echo $edit_data ? $edit_data['tahun'] : ''; ?>" required class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -73,6 +84,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM spp") or die(mysqli_error($konek
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID SPP</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tahun</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nominal</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
@@ -81,6 +93,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM spp") or die(mysqli_error($konek
                 <tbody class="bg-white divide-y divide-gray-200">
                     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                         <tr>
+                            <td class="px-4 py-2"><?php echo $row['id_spp']; ?></td>
                             <td class="px-4 py-2"><?php echo $row['tahun']; ?></td>
                             <td class="px-4 py-2"><?php echo number_format($row['nominal'], 0, ',', '.'); ?></td>
                             <td class="px-4 py-2">
